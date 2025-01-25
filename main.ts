@@ -110,9 +110,10 @@ export default class Shanhai9000 extends Plugin {
 		});
 
 		//尝试读取文件
-		const filePath = "data/example.json";
+		const filePath = "data.json";
 		const content = await this.app.vault.adapter.read(filePath);
 		let conversationHistory = JSON.parse(content);
+		conversationHistory[0].content=this.settings.system_prompt;
 		class ChatModal extends Modal {
 			result: string;
 			onSubmit: (result:any) => void;
