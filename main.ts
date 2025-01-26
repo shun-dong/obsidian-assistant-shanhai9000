@@ -1,5 +1,6 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import OpenAI from 'openai';
+import moment from 'moment';
 
 // Remember to rename these classes and interfaces!
 
@@ -11,6 +12,7 @@ interface Shanhai9000Settings {
 	assitant_name: string;
 	model: string;
 	data_path: string;
+	//我应该把promopt的tail独立出来,自动创建dialog文件,才能真正使用
 	// conversationHistory: any;
 }
 
@@ -21,7 +23,7 @@ const DEFAULT_SETTINGS: Shanhai9000Settings = {
 	user_name: "user",
 	assitant_name: "assistant",
 	model: "deepseek-chat",
-	data_path: "Function/dialog.json",
+	data_path: "Function/",
 	// conversationHistory: [{"role":"system","content":this.system_prompt}]
 	//这里应该为一个问题,变量是否可以访问
 }
@@ -35,7 +37,11 @@ export default class Shanhai9000 extends Plugin {
 		const ribbonIconEl = this.addRibbonIcon('dice', 'chat tab', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
 			let chatmodal=new ChatModal(this.app, (result: any) => {
-				writemassage(result);
+				getmassage(result).then((returnmassage) => {
+					writemassage(returnmassage);
+					chatmodal.close();
+					chatmodal.open();
+					});
 			})
 			chatmodal.open();
 		});
@@ -44,49 +50,6 @@ export default class Shanhai9000 extends Plugin {
 
 		//获取回复并储存
 		var shanhai9000plugin=this
-		async function  writemassage(stringifiedmassage: string){
-			await shanhai9000plugin.app.vault.adapter.write(filePath, stringifiedmassage);//这个this可能有问题
-		  }
-		// // This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		// const statusBarItemEl = this.addStatusBarItem();
-		// statusBarItemEl.setText('Status Bar Text');
-
-		// // This adds a simple command that can be triggered anywhere
-		// this.addCommand({
-		// 	id: 'open-sample-modal-simple',
-		// 	name: 'Open sample modal (simple)',
-		// 	callback: () => {
-		// 		new SampleModal(this.app).open();
-		// 	}
-		// });
-		// // This adds an editor command that can perform some operation on the current editor instance
-		// this.addCommand({
-		// 	id: 'sample-editor-command',
-		// 	name: 'Sample editor command',
-		// 	editorCallback: (editor: Editor, view: MarkdownView) => {
-		// 		console.log(editor.getSelection());
-		// 		editor.replaceSelection('Sample Editor Command');
-		// 	}
-		// });
-		// // This adds a complex command that can check whether the current state of the app allows execution of the command
-		// this.addCommand({
-		// 	id: 'open-sample-modal-complex',
-		// 	name: 'Open sample modal (complex)',
-		// 	checkCallback: (checking: boolean) => {
-		// 		// Conditions to check
-		// 		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		// 		if (markdownView) {
-		// 			// If checking is true, we're simply "checking" if the command can be run.
-		// 			// If checking is false, then we want to actually perform the operation.
-		// 			if (!checking) {
-		// 				new SampleModal(this.app).open();
-		// 			}
-
-		// 			// This command will only show up in Command Palette when the check function returns true
-		// 			return true;
-		// 		}
-		// 	}
-		// });
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new Shanhai9000SettingTab(this.app, this));
@@ -106,10 +69,13 @@ export default class Shanhai9000 extends Plugin {
 			dangerouslyAllowBrowser: true
 		});
 		var shanhai9000model=this.settings.model;
+		var shanhai9000user=this.settings.user_name;
+		var shanhai9000assistant=this.settings.assitant_name;
 		//尝试读取文件
-		const filePath = this.settings.data_path;
+		const dataPath = this.settings.data_path;
+		const filePath = dataPath+"dialog.json";
 		const content = await this.app.vault.adapter.read(filePath);
-		let conversationHistory = JSON.parse(content);
+		var conversationHistory = JSON.parse(content);
 		conversationHistory[0].content=this.settings.system_prompt;
 		class ChatModal extends Modal {
 			result: string;
@@ -124,13 +90,13 @@ export default class Shanhai9000 extends Plugin {
 				const { contentEl } = this;
 				for (const item of conversationHistory){
 					if (item.role !="system"){
-						contentEl.createEl("h1", { text: item.role });
+						contentEl.createEl("h1", { text: eval("shanhai9000"+item.role) +":"});
 						contentEl.createEl("small", { text: item.content});
 					}}
 					//尝试写一个交互界面,怎么读取数据,可以换一种方式,或参考其他插件
 			
 				new Setting(contentEl)
-					.setName("User:")
+					.setName(shanhai9000user+":")
 					.addText((text) =>
 					text.onChange((value) => {
 						this.result = value
@@ -143,29 +109,60 @@ export default class Shanhai9000 extends Plugin {
 						.setCta()
 						.onClick(() => {
 						//this.close();//看能不能不自动关闭
-						conversationHistory.push({role:"user", content:this.result});
-						async function getmassage(conversationHistory: any){
-							const completion = await openai.chat.completions.create({
-							messages: conversationHistory,
-							model: shanhai9000model,//这里需要改成可以设置的
-							});
-							let returnmassage = completion.choices[0].message;
-							conversationHistory.push(returnmassage);
-							let completedmassage =JSON.stringify(conversationHistory, null, 2);//这个this可能有问题
-							return completedmassage;
-						}
-						getmassage(conversationHistory).then((result) => {
-							this.onSubmit(result);
-							contentEl.empty();
-							this.onOpen();});
-
-							}));
+							this.onSubmit(this.result);
+						}));
 			}
 		
 			onClose() {
 			let { contentEl } = this;
 			contentEl.empty();
 			}
+		}
+		function massagetimer(massage: string){
+			return moment().format('YYYY-MM-DD HH:mm')+" "+massage;
+		}
+		async function massageplanner(massage: string,rolename:string){
+			if (await shanhai9000plugin.app.vault.adapter.exists(dataPath+rolename+".md")){
+			let plan=await shanhai9000plugin.app.vault.adapter.read(dataPath+rolename+".md");
+			massage=massage +"\n"+rolename+":\n"+plan};
+			return massage;
+		}
+		function massagedeplanner(massage: string){
+			let key=new RegExp(`(\\n)*(tasks of ${shanhai9000assistant}|${shanhai9000assistant}的时间表更新)(:|：)[\\s\\S]*`, 'g');
+			let returnmassage=massage.replace(key, "").trim();
+			return returnmassage;
+		}
+		function massagefliter(massage: string){
+			let key=new RegExp(`(?<=(\\n)*(tasks of ${shanhai9000assistant}|${shanhai9000assistant}的时间表更新)(:|：))[\\s\\S]*`,"g");
+			let matchresult=massage.match(key);
+			return matchresult
+		}
+		async function  writemassage(returnmassage: string){
+			let matchresult=massagefliter(returnmassage);
+			if (matchresult){let writemassage=matchresult[0];
+			await shanhai9000plugin.app.vault.adapter.write(
+					dataPath+shanhai9000assistant+".md", writemassage);};
+			let rawmassage=massagedeplanner(returnmassage);
+			conversationHistory.push({"role":"assistant","content":rawmassage});
+			let strhistory =JSON.stringify(conversationHistory, null, 2);
+			await shanhai9000plugin.app.vault.adapter.write(filePath,strhistory);//这里写this有问题
+		  }
+		  async function getmassage(massage: string) { // 修改返回类型
+			let inputmassage: any[];
+			const userMassage = await massageplanner(massage, shanhai9000user);
+			const assistantMassage = await massageplanner(userMassage, shanhai9000assistant);
+			
+			inputmassage = [...conversationHistory, { "role": "user", "content": assistantMassage }];
+			conversationHistory.push({ "role": "user", "content": massagetimer(massage) });
+			
+			const completion = await openai.chat.completions.create({
+				messages: inputmassage,
+				model: shanhai9000model, // 这里改成可以设置的
+			});
+			let returnmassage = completion.choices[0].message.content;
+			if(returnmassage){returnmassage=returnmassage.replace(/^"|"$/g, "")}
+			else{returnmassage=""};
+			return returnmassage; 
 		}
 	}
 
@@ -256,7 +253,7 @@ class Shanhai9000SettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Data path')
 			.addText(text => text
-				.setPlaceholder('Function/dialog.json')
+				.setPlaceholder('Function/')
 				.setValue(this.plugin.settings.data_path)
 				.onChange(async (value) => {
 					this.plugin.settings.data_path = value;
