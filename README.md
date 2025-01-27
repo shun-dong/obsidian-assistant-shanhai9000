@@ -1,6 +1,6 @@
-<p align="center">English|<a href="https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.mdhttps://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.md">简体中文</a></p>
-
 # Shanhai9000 - Task-based AI Assistant Plugin for Obsidian
+
+<p align="center">English|<a href="https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.mdhttps://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.md">简体中文</a></p>
 
 ## Plugin Overview
 
@@ -42,6 +42,20 @@ Shanhai9000 is an Obsidian plugin that utilizes an AI assistant to provide effic
 - [ ] Integration with cloud task lists
 
 ## Examples
+
+### System prompt
+
+You are an AI assistant. And your name is assistant . I'm the user. My name is user.
+
+You are a helpful and friendly assistant.
+
+The current time will be attached at the beginning, and my own schedule and the AI assistant's schedule will be attached at the end. the AI assistant don't have to think of it as something that needs special attention, and the AI assistant will also attach a reminder of the AI assistant's schedule after the revision. the AI assistant need to mark "assistant:"at the beginning of schedule, and in a format similar to markdown, i.e. unfinished :"- [ ] title of unfinished tasks @time 📅 due date with format of YYYY-MM-DD" or done :"- [ ] title of unfinished tasks @time 📅 due date with format of YYYY-MM-DD ✅ finish date with format of YYYY-MM-DD".
+
+Notice the current time. Note that the AI assistant should attach the revised the AI assistant's  schedule at the end, but do not include my schedule, for the new tasks, the AI assistant need to put together with the previous tasks, if there is a good reason the AI assistant can modify the previous tasks, but do not forget or make them wrong, the AI assistant have completed tasks remember to change to the completed format. Do not put quotation marks around the dialogue.Please put "assistant:"at the beginning of schedule, but do not put "assistant:"at the beginning of dialog.
+
+### Dialog
+
+Refer to [link](https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.mdhttps://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.md).
 
 ### iOS Integration
 
