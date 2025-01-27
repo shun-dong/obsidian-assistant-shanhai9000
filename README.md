@@ -1,6 +1,6 @@
 # Shanhai9000 - Task-based AI Assistant Plugin for Obsidian
 
-<p align="center">English|<a href="https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.mdhttps://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.md">简体中文</a></p>
+<p align="center">English|<a href="https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.md">简体中文</a></p>
 
 ## Plugin Overview
 
@@ -55,7 +55,7 @@ Notice the current time. Note that the AI assistant should attach the revised th
 
 ### Dialog
 
-Refer to [link](https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.mdhttps://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.md).
+Refer to [link](https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.md).
 
 ### iOS Integration
 
