@@ -5,7 +5,9 @@ import moment from 'moment';
 // Remember to rename these classes and interfaces!
 
 interface Shanhai9000Settings {
+	language: string;
 	ai_url: string;
+	generate_prompt: boolean;
 	system_prompt: string;
 	api_key: string;
 	user_name: string;
@@ -17,8 +19,10 @@ interface Shanhai9000Settings {
 }
 
 const DEFAULT_SETTINGS: Shanhai9000Settings = {
+	language: 'English',
 	ai_url: 'https://api.deepseek.com',
-	system_prompt: 'You are an AI assistant.',
+	generate_prompt:true,
+	system_prompt: '',
 	api_key:"",
 	user_name: "user",
 	assitant_name: "assistant",
@@ -34,11 +38,11 @@ export default class Shanhai9000 extends Plugin {
 	async onload() {
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'chat tab', (evt: MouseEvent) => {
+		const ribbonIconEl = this.addRibbonIcon('paw-print', 'chat tab', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
 			let chatmodal=new ChatModal(this.app, (result: any) => {
-				getmassage(result).then((returnmassage) => {
-					writemassage(returnmassage);
+				getmassage(result).then(async(returnmassage) => {
+					await writemassage(returnmassage);
 					chatmodal.close();
 					chatmodal.open();
 					});
@@ -74,7 +78,11 @@ export default class Shanhai9000 extends Plugin {
 		//尝试读取文件
 		const dataPath = this.settings.data_path;
 		const filePath = dataPath+"dialog.json";
-		const content = await this.app.vault.adapter.read(filePath);
+		let content;
+		if (await shanhai9000plugin.app.vault.adapter.exists(filePath)){
+			content = await this.app.vault.adapter.read(filePath)}
+		else{content=`[{"role":"system","content":""}]`
+			await this.app.vault.adapter.write(filePath,content);}
 		var conversationHistory = JSON.parse(content);
 		conversationHistory[0].content=this.settings.system_prompt;
 		class ChatModal extends Modal {
@@ -97,7 +105,7 @@ export default class Shanhai9000 extends Plugin {
 			
 				new Setting(contentEl)
 					.setName(shanhai9000user+":")
-					.addText((text) =>
+					.addTextArea((text) =>//会大一些
 					text.onChange((value) => {
 						this.result = value
 					}));
@@ -109,7 +117,7 @@ export default class Shanhai9000 extends Plugin {
 						.setCta()
 						.onClick(() => {
 						//this.close();//看能不能不自动关闭
-							this.onSubmit(this.result);
+							this.onSubmit(this.result)
 						}));
 			}
 		
@@ -124,16 +132,18 @@ export default class Shanhai9000 extends Plugin {
 		async function massageplanner(massage: string,rolename:string){
 			if (await shanhai9000plugin.app.vault.adapter.exists(dataPath+rolename+".md")){
 			let plan=await shanhai9000plugin.app.vault.adapter.read(dataPath+rolename+".md");
-			massage=massage +"\n"+rolename+":\n"+plan};
+			massage=massage +"\n"+rolename+":\n"+plan}
+			else {await shanhai9000plugin.app.vault.adapter.write(dataPath+rolename+".md","")}
 			return massage;
 		}
 		function massagedeplanner(massage: string){
-			let key=new RegExp(`(\\n)*(tasks of ${shanhai9000assistant}|${shanhai9000assistant}的时间表更新)(:|：)[\\s\\S]*`, 'g');
+			let key=new RegExp(`(\\n)*(tasks of ${shanhai9000assistant}|${shanhai9000assistant}(的时间表更新)?) ?(:|：)[\\s\\S]*`, 'g');
 			let returnmassage=massage.replace(key, "").trim();
 			return returnmassage;
 		}
 		function massagefliter(massage: string){
-			let key=new RegExp(`(?<=(\\n)*(tasks of ${shanhai9000assistant}|${shanhai9000assistant}的时间表更新)(:|：))[\\s\\S]*`,"g");
+			let key=new RegExp(`(?<=(\\n)*(tasks of ${shanhai9000assistant}|${shanhai9000assistant}(的时间表更新)?) ?(:|：)(\\n)*)[\\s\\S]*`,"g");
+			//时间表前面有空行
 			let matchresult=massage.match(key);
 			return matchresult
 		}
@@ -194,6 +204,16 @@ class Shanhai9000SettingTab extends PluginSettingTab {
 		containerEl.empty();
 		//添加设置
 		new Setting(containerEl)
+			.setName('Language')
+			.setDesc('to communicate with the AI and organize the data')
+			.addText(text => text
+				.setPlaceholder('English/Chinese are recommended')
+				.setValue(this.plugin.settings.language)
+				.onChange(async (value) => {
+					this.plugin.settings.language = value;
+					await this.plugin.saveSettings();
+				}));		
+		new Setting(containerEl)
 			.setName('AI url')
 			.setDesc('for openai compatible servers')
 			.addText(text => text
@@ -205,7 +225,6 @@ class Shanhai9000SettingTab extends PluginSettingTab {
 				}));
 		new Setting(containerEl)
 			.setName('API key')
-			.setDesc('from openai compatible servers')
 			.addText(text => text
 				.setPlaceholder('sk-   ')
 				.setValue(this.plugin.settings.api_key)
@@ -213,17 +232,7 @@ class Shanhai9000SettingTab extends PluginSettingTab {
 					this.plugin.settings.api_key = value;
 					await this.plugin.saveSettings();
 				}));
-		new Setting(containerEl)
-			.setName('System Prompt')
-			.setDesc('to communicate with the AI')
-			.addText(text => text
-				.setPlaceholder('You are an AI assistant.  ')
-				.setValue(this.plugin.settings.system_prompt)
-				.onChange(async (value) => {
-					this.plugin.settings.system_prompt = value;
-					await this.plugin.saveSettings();
-				}));
-		new Setting(containerEl)
+				new Setting(containerEl)
 			.setName('User\'s name')//缺少setCDesc
 			.addText(text => text
 				.setPlaceholder('user')
@@ -241,15 +250,43 @@ class Shanhai9000SettingTab extends PluginSettingTab {
 					this.plugin.settings.assitant_name = value;
 					await this.plugin.saveSettings();
 				}));
-		new Setting(containerEl)
-			.setName('AI model')
-			.addText(text => text
-				.setPlaceholder('deepseek-chat')
-				.setValue(this.plugin.settings.model)
+		new Setting(containerEl)//- [ ] 可以改成能自动刷新的
+			.setName("Use generated  system prompt")
+			.setDesc("Please reopen the tab after change this. This plugin needs a custom system prompt to work properly, which can be referred on page https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README.md . If you don't have one, we highly recommend you use the generated one.")
+				.addToggle(toggle => toggle
+					.setValue(this.plugin.settings.generate_prompt)
+					.onChange(async (value) => {
+						// 更新插件设置中的 generate_prompt值
+						this.plugin.settings.generate_prompt = value;
+						await this.plugin.saveSettings();
+					}))
+		if	(this.plugin.settings.generate_prompt==true){
+			let character="";
+			let generatetext="";
+			new Setting(containerEl)
+			.setName("Character of your AI assistant")
+			.addTextArea(text => text
+				.setPlaceholder('The AI assistant is a helpful and friendly assistant.')
+				.setValue(character)
 				.onChange(async (value) => {
-					this.plugin.settings.model = value;
+					character = value;
+					generatetext=`Your answer should in language of ${this.plugin.settings.language}. You are an AI assistant. And your name is ${this.plugin.settings.assitant_name}. I'm the user. My name is ${this.plugin.settings.user_name}. 
+${character}
+The current time will be attached at the beginning, and my own schedule and the AI assistant's schedule will be attached at the end. the AI assistant don't have to think of it as something that needs special attention, and the AI assistant will also attach a reminder of the AI assistant's schedule after the revision. the AI assistant need to mark "${this.plugin.settings.assitant_name}:"at the beginning of schedule, and in a format similar to markdown, i.e. unfinished :"- [] title of unfinished tasks @time 📅 due date with format of YYYY-MM-DD" or done :"- [] title of unfinished tasks @time 📅 due date with format of YYYY-MM-DD ✅ finish date with format of YYYY-MM-DD". 
+Notice the current time. Note that the AI assistant should attach the revised the AI assistant's  schedule at the end, but do not include my schedule, for the new tasks, the AI assistant need to put together with the previous tasks, if there is a good reason the AI assistant can modify the previous tasks, but do not forget or make them wrong, the AI assistant have completed tasks remember to change to the completed format. Do not put quotation marks around the dialogue.Please put "${this.plugin.settings.assitant_name}:"at the beginning of schedule, but do not put "${this.plugin.settings.assitant_name}:"at the beginning of dialog.`
+					this.plugin.settings.system_prompt= generatetext;
+					await this.plugin.saveSettings()}))
+				}else{
+		new Setting(containerEl)
+			.setName('System Prompt')
+			.setDesc("Examples can be referred on page https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README.md")
+			.addTextArea(text => text
+				.setPlaceholder('You are an AI assistant.  ')
+				.setValue(this.plugin.settings.system_prompt)
+				.onChange(async (value) => {
+					this.plugin.settings.system_prompt = value;
 					await this.plugin.saveSettings();
-				}));
+				}));}
 		new Setting(containerEl)
 			.setName('Data path')
 			.addText(text => text

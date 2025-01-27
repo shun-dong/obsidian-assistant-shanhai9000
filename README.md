@@ -1,94 +1,65 @@
-# Obsidian Sample Plugin
+<p align="center">English|<a href="https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.mdhttps://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README_zh.md">简体中文</a></p>
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+# Shanhai9000 - Task-based AI Assistant Plugin for Obsidian
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Plugin Overview
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+Shanhai9000 is an Obsidian plugin that utilizes an AI assistant to provide efficient dialogue support and task management for users. By interacting with OpenAI-compatible AI models, it helps you quickly generate, manage, and organize content.
 
-## First time developing plugins?
+## Key Features
 
-Quick starting guide for new plugin devs:
+- **AI Chat**: Engage in natural language conversations with the AI assistant to easily obtain answers.
+- **Task Management**: Combine tasks and schedules with the AI assistant's conversation history to keep your work organized.
+- **Custom System Prompts**: Users can customize the system prompt for the AI assistant to fit different use cases.
+- **Automatic Prompt Generation**: Support for auto-generating system prompts for various scenarios, saving you configuration time.
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+## Installation and Configuration
 
-## Releasing new releases
+1. **Install the Plugin**:
+   
+   - Download and install the `Shanhai9000` plugin via [brat plugin](https://github.com/TfTHacker/obsidian42-brat).
+   - After enabling the plugin, you will see a new icon in the left ribbon of Obsidian to open the chat interface.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+2. **Configure the Plugin**:
+   
+   - **Language**: Choose any language for communication with the AI assistant.
+   - **AI URL**: Configure the AI server URL.
+   - **API Key**: API key for connecting to OpenAI or compatible services.
+   - **User and Assistant Names**: Set the names for the user and the AI assistant.
+   - **Data Path**: Define the path where conversation and task data will be stored.
+   - You can customize the system prompt for the AI assistant or enable auto-generated prompts based on your needs.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+3. **How to Use**:
+   
+   - Click the icon in the left ribbon to open the chat interface and start interacting with the AI assistant.
+   - The AI will generate appropriate responses based on your input and store them in the specified data path.
 
-## Adding your plugin to the community plugin list
+## Future Goals
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+- [ ] Streaming chat text
+- [ ] Support for long conversations
+- [ ] Global task retrieval
+- [ ] Integration with cloud task lists
 
-## How to use
+## Examples
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+### iOS Integration
 
-## Manually installing the plugin
+You can use Shortcuts to automatically sync Obsidian tasks with iOS Reminders for automation.
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+However, note that Shortcuts might have lower efficiency, and some file paths need to be configured manually. For further updates, please visit [my blog](https://shun-dong.github.io/).
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+- [Get Tasks from Markdown](https://www.icloud.com/shortcuts/24b696eff6a848b4a02aeec359c1d201)
+- [Update Tasks from Markdown](https://www.icloud.com/shortcuts/eb84cb14fac44e0a84c4962cb4eb6c27)
+- [Push Tasks from Folder](https://www.icloud.com/shortcuts/9b79f1bd1111433cae4014067011ec4c)
+- [Daily Push](https://www.icloud.com/shortcuts/34dd36a9e53d4525ba3b64401f9cf6fb)
 
-## Funding URL
+## Notes
 
-You can include funding URLs where people who use your plugin can financially support it.
+This plugin relies on OpenAI-compatible AI services, so please ensure you have a valid API key.
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+We recommend using [deepseek](https://platform.deepseek.com/).
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
+## Contributing
 
-If you have multiple URLs, you can also do:
-
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
-
-## API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
+If you find any issues or have suggestions, feel free to submit an issue or pull request. We welcome contributions from all developers and users!
