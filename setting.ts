@@ -160,6 +160,28 @@ Notice the current time. Note that the AI assistant should attach the revised th
 						this.plugin.settings.note_path = value;
 						await this.plugin.saveSettings();
 					}));
+			new Setting(containerEl)//- [ ] 可以改成能自动刷新的
+			.setName("Only from recent notes")
+				.addToggle(toggle => toggle
+					.setValue(this.plugin.settings.from_recent)
+					.onChange(async (value) => {
+						this.plugin.settings.from_recent = value;
+						await this.plugin.saveSettings();
+						containerEl.empty();
+						this.display();
+					}))	
+			if (this.plugin.settings.from_recent){
+				new Setting(containerEl)
+					.setName("Duration")
+					.setDesc(`(in day)`)
+					.addTextArea(text=>text
+						.setPlaceholder("30")
+						.setValue(String(this.plugin.settings.duration))
+						.onChange(async (value) => {
+							this.plugin.settings.duration = Number(value);
+							await this.plugin.saveSettings();
+						}));
+			}
 		}
 		new Setting(containerEl)//- [ ] 可以改成能自动刷新的
 		.setName("Use local alternative ")

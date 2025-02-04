@@ -1,5 +1,5 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { Shanhai9000SettingTab } from "./setting";
+import { App, Modal, Notice, Plugin, Setting } from 'obsidian';
+import { Shanhai9000SettingTab } from "setting";
 import { taskimporter } from 'taskimporter';
 import axios from 'axios';
 import moment from 'moment';
@@ -20,6 +20,8 @@ interface Shanhai9000Settings {
 	data_path: string;
 	note_path: string;
 	extract_tasks: boolean;
+	from_recent:boolean;
+	duration:number;
 	use_localmodel: boolean;
 }
 
@@ -36,6 +38,8 @@ const DEFAULT_SETTINGS: Shanhai9000Settings = {
 	model: "deepseek-reasoner",
 	data_path: "Function/",
 	extract_tasks: true,
+	from_recent:true,
+	duration:30,
 	note_path:"Note/",
 	use_localmodel:false,
 }
@@ -179,42 +183,43 @@ export default class Shanhai9000 extends Plugin {
 			else{inputmessage=[...conversationHistory, { "role": "user", "content": assistantmessage }]}
 			conversationHistory.push({ "role": "user", "content": messagetimer(message) });
 			let returnmessage;
+			new Notice(`${shanhai9000assistant} is thinking...`);
 			if (uselocalmodel){
 				function formatConversationHistory(history:any[]) {
 					return history
 					  .map((entry) => `${entry.role}: ${entry.content}`)
 					  .join('}\n{');
 				  }
-			try{ let completion = await axios.post(
-				aiurl+'/v1/chat/completions',
-				{
-				  messages: inputmessage,
-				  model: aimodel,
-				  stream: false,
-				},
-				{
-				  headers: {
-					"Content-Type": "application/json",
-					'Authorization': `Bearer ${apikey}`,
-				  },
-				  timeout: 1
-				}
-			  );
-			returnmessage= completion.data.choices[0].message.content;}
-			catch(error){
-				let completion = await axios.post(localurl+"/api/generate", {
-					model:localmodel,
-					prompt:formatConversationHistory( inputmessage),
+				try{ let completion = await axios.post(
+					aiurl+'/v1/chat/completions',
+					{
+					messages: inputmessage,
+					model: aimodel,
 					stream: false,
-				}, {
-					headers: {
-					  'Content-Type': 'application/json',
 					},
-					timeout:1000000
-				  });
-				returnmessage= completion.data.response;
-				console.log(completion)
-			}}
+					{
+					headers: {
+						"Content-Type": "application/json",
+						'Authorization': `Bearer ${apikey}`,
+					},
+					timeout: 7000
+					}
+				);
+				returnmessage= completion.data.choices[0].message.content;}
+				catch(error){
+					let completion = await axios.post(localurl+"/api/generate", {
+						model:localmodel,
+						prompt:formatConversationHistory( inputmessage),
+						stream: false,
+					}, {
+						headers: {
+						'Content-Type': 'application/json',
+						},
+						timeout:1000000
+					});
+					returnmessage= completion.data.response;
+					console.log(completion)
+				}}
 			else{
 				let completion = await axios.post(
 					aiurl+'/v1/chat/completions',
