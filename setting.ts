@@ -1,4 +1,3 @@
-import path from "path";
 import Shanhai9000 from "./main";
 import { App, PluginSettingTab, Setting } from "obsidian";
 
@@ -16,6 +15,7 @@ export class Shanhai9000SettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 		//添加设置
+		containerEl.createEl("h1",{text:"Basic Settings:"})
 		new Setting(containerEl)
 			.setName('Language')
 			.setDesc('to communicate with the AI and organize the data')
@@ -54,6 +54,33 @@ export class Shanhai9000SettingTab extends PluginSettingTab {
 					this.plugin.settings.user_name = value;
 					await this.plugin.saveSettings();
 				}));
+						new Setting(containerEl)
+			.setName('API key')
+			.addText(text => text
+				.setPlaceholder('sk-   ')
+				.setValue(this.plugin.settings.api_key)
+				.onChange(async (value) => {
+					this.plugin.settings.api_key = value;
+					await this.plugin.saveSettings();
+				}));
+				new Setting(containerEl)
+			.setName('User\'s name')//缺少setCDesc
+			.addText(text => text
+				.setPlaceholder('user')
+				.setValue(this.plugin.settings.user_name)
+				.onChange(async (value) => {
+					this.plugin.settings.user_name = value;
+					await this.plugin.saveSettings();
+				}));
+		new Setting(containerEl)
+			.setName('Model')
+			.addText(text => text
+				.setPlaceholder('deepseek-reasoner')
+				.setValue(this.plugin.settings.model)
+				.onChange(async (value) => {
+					this.plugin.settings.model = value;
+					await this.plugin.saveSettings();
+				}));
 		new Setting(containerEl)
 			.setName('AI assistant\'s name')
 			.addText(text => text
@@ -65,7 +92,7 @@ export class Shanhai9000SettingTab extends PluginSettingTab {
 				}));
 		new Setting(containerEl)//- [ ] 可以改成能自动刷新的
 			.setName("Use generated  system prompt")
-			.setDesc("Please reopen the tab after change this. This plugin needs a custom system prompt to work properly, which can be referred on page https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README.md . If you don't have one, we highly recommend you use the generated one.")
+			.setDesc("This plugin needs a custom system prompt to work properly, which can be referred on page https://github.com/shun-dong/obsidian-assistance-shanhai9000/blob/master/README.md . If you don't have one, we highly recommend you use the generated one.")
 				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.generate_prompt)
 					.onChange(async (value) => {
@@ -111,6 +138,7 @@ Notice the current time. Note that the AI assistant should attach the revised th
 					this.plugin.settings.data_path = value;
 					await this.plugin.saveSettings();
 				}));
+		containerEl.createEl("h1",{text:"Extra features:"})
 		new Setting(containerEl)//- [ ] 可以改成能自动刷新的
 			.setName("Extract tasks from folder")
 			.setDesc(`It will extract tasks and store in ${this.plugin.settings.data_path}${this.plugin.settings.user_name}`)
@@ -122,7 +150,7 @@ Notice the current time. Note that the AI assistant should attach the revised th
 						containerEl.empty();
 						this.display();
 					}))	
-		if (this.plugin.settings.extract_tasks==true){
+		if (this.plugin.settings.extract_tasks){
 			new Setting(containerEl)
 				.setName("Note path")
 				.addTextArea(text=>text
@@ -132,8 +160,40 @@ Notice the current time. Note that the AI assistant should attach the revised th
 						this.plugin.settings.note_path = value;
 						await this.plugin.saveSettings();
 					}));
-				
 		}
+		new Setting(containerEl)//- [ ] 可以改成能自动刷新的
+		.setName("Use local alternative ")
+		.setDesc(`In case of any error of online server`)
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.use_localmodel)
+				.onChange(async (value) => {
+					this.plugin.settings.use_localmodel = value;
+					await this.plugin.saveSettings();
+					containerEl.empty();
+					this.display();
+				}))		
+		if(this.plugin.settings.use_localmodel){
+		new Setting(containerEl)
+		.setName('Local AI url')
+		.setDesc('Local AI eg Ollama ')
+		.addText(text => text
+			.setPlaceholder('http://localhost:11434')
+			.setValue(this.plugin.settings.local_url)
+			.onChange(async (value) => {
+				this.plugin.settings.local_url = value;
+				await this.plugin.saveSettings();
+			}));		
+		new Setting(containerEl)
+		.setName('Local AI model')
+		.setDesc("Model that is too small cannot give proper answer.")
+		.addText(text => text
+			.setPlaceholder('deepseek-r1:8b')
+			.setValue(this.plugin.settings.local_model)
+			.onChange(async (value) => {
+				this.plugin.settings.local_model = value;
+				await this.plugin.saveSettings();
+			}));		}			
+
 
 	}
 }

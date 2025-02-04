@@ -6,6 +6,14 @@
 
 Shanhai9000 is an Obsidian plugin that utilizes an AI assistant to provide efficient dialogue support and task management for users. By interacting with OpenAI-compatible AI models, it helps you quickly generate, manage, and organize content.
 
+## New Features
+
+- **Task Extraction**: Automatically extract tasks from note folders.
+
+- **Local Models**: Allow the use of alternative local large models.
+
+- **Long Conversations**: Optimized performance for longer chats.
+
 ## Key Features
 
 - **AI Chat**: Engage in natural language conversations with the AI assistant to easily obtain answers.
@@ -34,12 +42,13 @@ Shanhai9000 is an Obsidian plugin that utilizes an AI assistant to provide effic
    - Click the icon in the left ribbon to open the chat interface and start interacting with the AI assistant.
    - The AI will generate appropriate responses based on your input and store them in the specified data path.
 
-## Future Goals
+#### Future Goals
 
 - [ ] Streaming chat text
-- [ ] Support for long conversations
-- [ ] Global task retrieval
+- [x] Long conversation support
+- [x] Global task retrieval
 - [ ] Integration with cloud task lists
+- [ ] Memory-like capabilities
 
 ## Examples
 

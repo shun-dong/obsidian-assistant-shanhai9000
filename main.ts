@@ -1,7 +1,7 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { Shanhai9000SettingTab } from "./setting";
 import { taskimporter } from 'taskimporter';
-import OpenAI from 'openai';
+import axios from 'axios';
 import moment from 'moment';
 
 // Remember to rename these classes and interfaces!
@@ -9,6 +9,8 @@ import moment from 'moment';
 interface Shanhai9000Settings {
 	language: string;
 	ai_url: string;
+	local_url: string;
+	local_model:string;
 	generate_prompt: boolean;
 	system_prompt: string;
 	api_key: string;
@@ -18,24 +20,24 @@ interface Shanhai9000Settings {
 	data_path: string;
 	note_path: string;
 	extract_tasks: boolean;
-	//我应该把promopt的tail独立出来,自动创建dialog文件,才能真正使用
-	// conversationHistory: any;
+	use_localmodel: boolean;
 }
 
 const DEFAULT_SETTINGS: Shanhai9000Settings = {
 	language: 'English',
 	ai_url: 'https://api.deepseek.com',
+	local_url:'http://localhost:11434',
+	local_model:"deepseek-r1:8b",
 	generate_prompt:true,
 	system_prompt: '',
 	api_key:"",
 	user_name: "user",
 	assitant_name: "assistant",
-	model: "deepseek-chat",
+	model: "deepseek-reasoner",
 	data_path: "Function/",
 	extract_tasks: true,
-	note_path:"Note/"
-	// conversationHistory: [{"role":"system","content":this.system_prompt}]
-	//这里应该为一个问题,变量是否可以访问
+	note_path:"Note/",
+	use_localmodel:false,
 }
 
 export default class Shanhai9000 extends Plugin {
@@ -74,17 +76,16 @@ export default class Shanhai9000 extends Plugin {
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 		await this.loadSettings();
-		const openai = new OpenAI({
-			baseURL: this.settings.ai_url ,
-			apiKey: this.settings.api_key,
-			dangerouslyAllowBrowser: true
-		});
-		var shanhai9000model=this.settings.model;
 		var shanhai9000user=this.settings.user_name;
 		var shanhai9000assistant=this.settings.assitant_name;
-		//尝试读取文件
 		const dataPath = this.settings.data_path;
 		const filePath = dataPath+"dialog.json";
+		const aiurl=this.settings.ai_url;
+		const localurl=this.settings.local_url;	
+		const apikey=this.settings.api_key;
+		const aimodel=this.settings.model;
+		const localmodel=this.settings.local_model;
+		const uselocalmodel=this.settings.use_localmodel;
 		let content;
 		if (await shanhai9000plugin.app.vault.adapter.exists(filePath)){
 			content = await this.app.vault.adapter.read(filePath);}
@@ -104,14 +105,18 @@ export default class Shanhai9000 extends Plugin {
 			onOpen() {
 				const { contentEl } = this;
 				for (const item of conversationHistory){
-					if (item.role !="system"){
-						contentEl.createEl("h1", { text: eval("shanhai9000"+item.role) +":"});
+					if (item.role =="user"){
+						contentEl.createEl("h1", { text: shanhai9000user});
 						contentEl.createEl("small", { text: item.content});
-					}}
+					};
+					if (item.role =="assistant"){
+						contentEl.createEl("h1", { text: shanhai9000assistant});
+						contentEl.createEl("small", { text: item.content});
+					}
+				}
 					//尝试写一个交互界面,怎么读取数据,可以换一种方式,或参考其他插件
-			
+				contentEl.createEl("h1",{ text: shanhai9000user});
 				new Setting(contentEl)
-					.setName(shanhai9000user+":")
 					.addTextArea((text) =>//会大一些
 					text.onChange((value) => {
 						this.result = value
@@ -123,7 +128,6 @@ export default class Shanhai9000 extends Plugin {
 						.setButtonText("Send")
 						.setCta()
 						.onClick(() => {
-						//this.close();//看能不能不自动关闭
 							this.onSubmit(this.result)
 						}));
 			}
@@ -174,12 +178,59 @@ export default class Shanhai9000 extends Plugin {
 			inputmessage = [conversationHistory[0], ...conversationHistory.slice(-6), { "role": "user", "content": assistantmessage }];}
 			else{inputmessage=[...conversationHistory, { "role": "user", "content": assistantmessage }]}
 			conversationHistory.push({ "role": "user", "content": messagetimer(message) });
-			
-			const completion = await openai.chat.completions.create({
-				messages: inputmessage,
-				model: shanhai9000model, // 这里改成可以设置的
-			});
-			let returnmessage = completion.choices[0].message.content;
+			let returnmessage;
+			if (uselocalmodel){
+				function formatConversationHistory(history:any[]) {
+					return history
+					  .map((entry) => `${entry.role}: ${entry.content}`)
+					  .join('}\n{');
+				  }
+			try{ let completion = await axios.post(
+				aiurl+'/v1/chat/completions',
+				{
+				  messages: inputmessage,
+				  model: aimodel,
+				  stream: false,
+				},
+				{
+				  headers: {
+					"Content-Type": "application/json",
+					'Authorization': `Bearer ${apikey}`,
+				  },
+				  timeout: 1
+				}
+			  );
+			returnmessage= completion.data.choices[0].message.content;}
+			catch(error){
+				let completion = await axios.post(localurl+"/api/generate", {
+					model:localmodel,
+					prompt:formatConversationHistory( inputmessage),
+					stream: false,
+				}, {
+					headers: {
+					  'Content-Type': 'application/json',
+					},
+					timeout:1000000
+				  });
+				returnmessage= completion.data.response;
+				console.log(completion)
+			}}
+			else{
+				let completion = await axios.post(
+					aiurl+'/v1/chat/completions',
+					{
+					  prompt: inputmessage,
+					  model: aimodel,
+					  stream: false,
+					},
+					{
+					  headers: {
+						"Content-Type": "application/json",
+						'Authorization': `Bearer ${apikey}`,
+					  }
+					}
+				  );
+				returnmessage= completion.data.choices[0].message.content;}
 			if(returnmessage){returnmessage=returnmessage.replace(/^"|"$/g, "")}
 			else{returnmessage=""};
 			return returnmessage; 
