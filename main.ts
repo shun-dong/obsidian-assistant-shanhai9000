@@ -3,6 +3,7 @@ import { Shanhai9000SettingTab } from "setting";
 import { taskimporter } from 'taskimporter';
 import axios from 'axios';
 import moment from 'moment';
+import { Messages } from 'openai/resources/beta/threads/messages';
 
 // Remember to rename these classes and interfaces!
 
@@ -224,7 +225,7 @@ export default class Shanhai9000 extends Plugin {
 				let completion = await axios.post(
 					aiurl+'/v1/chat/completions',
 					{
-					  prompt: inputmessage,
+					  messages: inputmessage,
 					  model: aimodel,
 					  stream: false,
 					},

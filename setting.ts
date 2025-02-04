@@ -174,7 +174,7 @@ Notice the current time. Note that the AI assistant should attach the revised th
 				new Setting(containerEl)
 					.setName("Duration")
 					.setDesc(`(in day)`)
-					.addTextArea(text=>text
+					.addText(text=>text
 						.setPlaceholder("30")
 						.setValue(String(this.plugin.settings.duration))
 						.onChange(async (value) => {
