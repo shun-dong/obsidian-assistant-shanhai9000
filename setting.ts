@@ -141,7 +141,7 @@ Notice the current time. Note that the AI assistant should attach the revised th
 		containerEl.createEl("h1",{text:"Extra features:"})
 		new Setting(containerEl)//- [ ] 可以改成能自动刷新的
 			.setName("Extract tasks from folder")
-			.setDesc(`It will extract tasks with ${this.plugin.settings.fliter} and store in ${this.plugin.settings.data_path}${this.plugin.settings.user_name}`)
+			.setDesc(`It will extract tasks with ${this.plugin.settings.filter} and store in ${this.plugin.settings.data_path}${this.plugin.settings.user_name}`)
 				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.extract_tasks)
 					.onChange(async (value) => {
@@ -161,16 +161,16 @@ Notice the current time. Note that the AI assistant should attach the revised th
 						await this.plugin.saveSettings();
 					}));
 			new Setting(containerEl)
-				.setName("Global fliter")
+				.setName("Global filter")
 				.addTextArea(text=>text
 					.setPlaceholder("⏫")
-					.setValue(this.plugin.settings.fliter)
+					.setValue(this.plugin.settings.filter)
 					.onChange(async (value) => {
-						this.plugin.settings.fliter = value;
+						this.plugin.settings.filter = value;
 						await this.plugin.saveSettings();
 					}));
 			new Setting(containerEl)//- [ ] 可以改成能自动刷新的
-			.setName("Extract tasks recent notes")
+			.setName("Extract tasks from recent notes at same time")
 				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.from_recent)
 					.onChange(async (value) => {
@@ -182,9 +182,9 @@ Notice the current time. Note that the AI assistant should attach the revised th
 			if (this.plugin.settings.from_recent){
 				new Setting(containerEl)
 					.setName("Duration")
-					.setDesc(`(in day)`)
+					.setDesc(`(in hour)`)
 					.addText(text=>text
-						.setPlaceholder("30")
+						.setPlaceholder("72")
 						.setValue(String(this.plugin.settings.duration))
 						.onChange(async (value) => {
 							this.plugin.settings.duration = Number(value);

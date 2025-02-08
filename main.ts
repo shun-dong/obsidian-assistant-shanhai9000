@@ -24,7 +24,7 @@ interface Shanhai9000Settings {
 	from_recent:boolean;
 	duration:number;
 	use_localmodel: boolean;
-	fliter:string;
+	filter:string;
 }
 
 const DEFAULT_SETTINGS: Shanhai9000Settings = {
@@ -40,9 +40,9 @@ const DEFAULT_SETTINGS: Shanhai9000Settings = {
 	model: "deepseek-reasoner",
 	data_path: "Function/",
 	extract_tasks: true,
-	fliter:"🔼",
+	filter:"⏫",
 	from_recent:true,
-	duration:3,
+	duration:72,
 	note_path:"Note/",
 	use_localmodel:false,
 }
@@ -94,15 +94,15 @@ export default class Shanhai9000 extends Plugin {
 		const localmodel=this.settings.local_model;
 		const uselocalmodel=this.settings.use_localmodel;
 		let content;
-		if (this.settings.extract_tasks){
-			taskimporter(this)
-		}
 		if (await shanhai9000plugin.app.vault.adapter.exists(filePath)){
 			content = await this.app.vault.adapter.read(filePath);}
 		else{content=`[{"role":"system","content":""}]`
 			await this.app.vault.adapter.write(filePath,content);}
 		var conversationHistory = JSON.parse(content);
 		conversationHistory[0].content=this.settings.system_prompt;
+		if (this.settings.extract_tasks){
+			taskimporter(this)
+		}//不知道为什么这会使Function消失
 		class ChatModal extends Modal {
 			result: string;
 			onSubmit: (result:any) => void;
@@ -163,7 +163,7 @@ export default class Shanhai9000 extends Plugin {
 			let returnmessage=message.replace(key, "").trim();
 			return returnmessage;
 		}
-		function messagefliter(message: string){
+		function messagefilter(message: string){
 			let key=new RegExp(
 				`(?<=(\\n)*(tasks of ${shanhai9000assistant}|${shanhai9000assistant}(的时间表更新)?) ?(:|：)(\\n)*)[\\s\\S]*`,"g");
 			//时间表前面有空行
@@ -171,7 +171,7 @@ export default class Shanhai9000 extends Plugin {
 			return matchresult
 		}
 		async function  writemessage(returnmessage: string){
-			let matchresult=messagefliter(returnmessage);
+			let matchresult=messagefilter(returnmessage);
 			if (matchresult){let writemessage=matchresult[0];
 			await shanhai9000plugin.app.vault.adapter.write(
 					dataPath+shanhai9000assistant+".md", writemessage);};
