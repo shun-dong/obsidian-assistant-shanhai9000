@@ -141,7 +141,7 @@ Notice the current time. Note that the AI assistant should attach the revised th
 		containerEl.createEl("h1",{text:"Extra features:"})
 		new Setting(containerEl)//- [ ] 可以改成能自动刷新的
 			.setName("Extract tasks from folder")
-			.setDesc(`It will extract tasks and store in ${this.plugin.settings.data_path}${this.plugin.settings.user_name}`)
+			.setDesc(`It will extract tasks with ${this.plugin.settings.fliter} and store in ${this.plugin.settings.data_path}${this.plugin.settings.user_name}`)
 				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.extract_tasks)
 					.onChange(async (value) => {
@@ -160,8 +160,17 @@ Notice the current time. Note that the AI assistant should attach the revised th
 						this.plugin.settings.note_path = value;
 						await this.plugin.saveSettings();
 					}));
+			new Setting(containerEl)
+				.setName("Global fliter")
+				.addTextArea(text=>text
+					.setPlaceholder("⏫")
+					.setValue(this.plugin.settings.fliter)
+					.onChange(async (value) => {
+						this.plugin.settings.fliter = value;
+						await this.plugin.saveSettings();
+					}));
 			new Setting(containerEl)//- [ ] 可以改成能自动刷新的
-			.setName("Only from recent notes")
+			.setName("Extract tasks recent notes")
 				.addToggle(toggle => toggle
 					.setValue(this.plugin.settings.from_recent)
 					.onChange(async (value) => {
@@ -183,6 +192,7 @@ Notice the current time. Note that the AI assistant should attach the revised th
 						}));
 			}
 		}
+
 		new Setting(containerEl)//- [ ] 可以改成能自动刷新的
 		.setName("Use local alternative ")
 		.setDesc(`In case of any error of online server`)

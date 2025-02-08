@@ -24,6 +24,7 @@ interface Shanhai9000Settings {
 	from_recent:boolean;
 	duration:number;
 	use_localmodel: boolean;
+	fliter:string;
 }
 
 const DEFAULT_SETTINGS: Shanhai9000Settings = {
@@ -39,8 +40,9 @@ const DEFAULT_SETTINGS: Shanhai9000Settings = {
 	model: "deepseek-reasoner",
 	data_path: "Function/",
 	extract_tasks: true,
+	fliter:"🔼",
 	from_recent:true,
-	duration:30,
+	duration:3,
 	note_path:"Note/",
 	use_localmodel:false,
 }
@@ -92,6 +94,9 @@ export default class Shanhai9000 extends Plugin {
 		const localmodel=this.settings.local_model;
 		const uselocalmodel=this.settings.use_localmodel;
 		let content;
+		if (this.settings.extract_tasks){
+			taskimporter(this)
+		}
 		if (await shanhai9000plugin.app.vault.adapter.exists(filePath)){
 			content = await this.app.vault.adapter.read(filePath);}
 		else{content=`[{"role":"system","content":""}]`
