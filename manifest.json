@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-assistance-shanhai9000",
 	"name": "Shanhai9000",
-	"version": "v1.1.1",
+	"version": "v1.1.2",
 	"minAppVersion": "0.15.0",
 	"description": "This plugin uses AI to get help and manage tasks. It gives text feedback and ganerates calenders to notice users",
 	"author": "采薇",
