@@ -3,7 +3,6 @@ import { Shanhai9000SettingTab } from "setting";
 import { taskimporter } from 'taskimporter';
 import axios from 'axios';
 import moment from 'moment';
-import { Messages } from 'openai/resources/beta/threads/messages';
 
 // Remember to rename these classes and interfaces!
 
@@ -66,9 +65,7 @@ export default class Shanhai9000 extends Plugin {
 			chatmodal.open();
 		});
 		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
-
-		//获取回复并储存
+		ribbonIconEl.addClass('shanhai9000-ribbon-class');
 		var shanhai9000plugin=this
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
@@ -83,6 +80,9 @@ export default class Shanhai9000 extends Plugin {
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 		await this.loadSettings();
+		if (this.settings.extract_tasks){
+			setTimeout(()=>{taskimporter(this)},1000)
+		}//不知道为什么如果不等一下这会使Function文件夹消失
 		var shanhai9000user=this.settings.user_name;
 		var shanhai9000assistant=this.settings.assitant_name;
 		const dataPath = this.settings.data_path;
@@ -100,9 +100,6 @@ export default class Shanhai9000 extends Plugin {
 			await this.app.vault.adapter.write(filePath,content);}
 		var conversationHistory = JSON.parse(content);
 		conversationHistory[0].content=this.settings.system_prompt;
-		if (this.settings.extract_tasks){
-			taskimporter(this)
-		}//不知道为什么这会使Function消失
 		class ChatModal extends Modal {
 			result: string;
 			onSubmit: (result:any) => void;

@@ -1,5 +1,6 @@
 import Shanhai9000 from "./main";
 import moment from 'moment';
+import {normalizePath} from 'obsidian';
 
 export async function taskimporter(plugin:Shanhai9000) {
     let filePaths=plugin.settings.note_path.split(/\r?\n/);
@@ -22,5 +23,5 @@ export async function taskimporter(plugin:Shanhai9000) {
                 }
             }
         }
-    plugin.app.vault.adapter.write(plugin.settings.data_path+plugin.settings.user_name+".md",globaltasks)
+    plugin.app.vault.adapter.write(normalizePath(plugin.settings.data_path+plugin.settings.user_name+".md"),globaltasks)
     }
